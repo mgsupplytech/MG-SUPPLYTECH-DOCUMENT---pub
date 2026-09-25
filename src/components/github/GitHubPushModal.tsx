@@ -167,16 +167,33 @@ git push -u origin main`;
           </div>
 
           {/* Mac Double-Click Script Note */}
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#152220] border border-slate-200 dark:border-[#2a3f3b] text-xs flex items-center justify-between">
-            <div>
-              <b className="text-slate-800 dark:text-white">macOS 1-Click Pusher:</b>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                You can also run <code>push-to-github.command</code> right inside your local Mac folder!
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#152220] border border-slate-200 dark:border-[#2a3f3b] text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <b className="text-slate-800 dark:text-white flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#DFBC64]" />
+                  Direct 1-Click Push on Mac
+                </b>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Double-click <b>Push-Updates-Directly.command</b> inside your downloaded folder!
+                </div>
               </div>
+              <span className="px-2.5 py-1 bg-[#003A30] text-[#DFBC64] rounded-lg font-mono text-[10px] font-bold border border-[#DFBC64]/30 shadow-xs">
+                Push-Updates-Directly.command
+              </span>
             </div>
-            <span className="px-2 py-1 bg-[#003A30] text-[#DFBC64] rounded font-mono text-[10px] font-bold">
-              push-to-github.command
-            </span>
+
+            <div className="pt-2 border-t border-slate-200 dark:border-white/5 flex items-center justify-between text-[11px]">
+              <span className="text-slate-500">Or run in Terminal:</span>
+              <button
+                type="button"
+                onClick={() => copyToClipboard('git add . && git commit -m "Update MG Supplytech" && git push origin main', 88)}
+                className="font-mono text-xs px-2.5 py-1 rounded bg-slate-900 text-emerald-400 hover:text-white transition flex items-center gap-1.5"
+              >
+                {copiedIndex === 88 ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>git add . && git commit -m "Update" && git push</span>
+              </button>
+            </div>
           </div>
         </div>
 

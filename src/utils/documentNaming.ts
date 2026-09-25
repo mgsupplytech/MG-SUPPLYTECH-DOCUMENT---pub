@@ -181,6 +181,9 @@ export const printDocumentWithStandardName = (doc: DocumentRecord): string => {
     // Set document.title so Chrome/Firefox/Safari pre-fills "Save as PDF" with this exact name
     document.title = titleWithoutExt;
 
+    // Dispatch event to mount this exact document in the isolated print container
+    window.dispatchEvent(new CustomEvent('mg_prepare_print_doc', { detail: { doc } }));
+
     // Restore title after print dialog closes or after a safety timeout
     const cleanup = () => {
       document.title = originalTitle;
@@ -190,8 +193,10 @@ export const printDocumentWithStandardName = (doc: DocumentRecord): string => {
     window.addEventListener('afterprint', cleanup, { once: true });
     setTimeout(cleanup, 45000);
 
-    // Trigger browser print
-    window.print();
+    // Brief timeout to ensure React renders the document into the isolated print container
+    setTimeout(() => {
+      window.print();
+    }, 50);
   } catch (err) {
     console.error('Error triggering standardized print:', err);
     document.title = originalTitle;

@@ -968,3 +968,199 @@ export const createInitialDocument = (type: DocumentType = 'quotation'): Documen
 
   return baseDoc;
 };
+
+export interface BatchImportResult {
+  added: number;
+  updated: number;
+  total: number;
+}
+
+export const importCustomersBatch = (
+  items: Array<{
+    companyName: string;
+    contactPerson?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    mobile?: string;
+    email?: string;
+    gstin?: string;
+    productsBought?: string;
+    paymentTerms?: string;
+    deliveryTerms?: string;
+  }>,
+  options: { updateExisting: boolean } = { updateExisting: true }
+): BatchImportResult => {
+  const all = getCustomers();
+  let added = 0;
+  let updated = 0;
+  const now = new Date().toISOString();
+
+  for (const item of items) {
+    if (!item.companyName || !item.companyName.trim()) continue;
+    const cleanName = item.companyName.trim();
+    const existingIdx = all.findIndex(
+      c => c.companyName.trim().toLowerCase() === cleanName.toLowerCase() ||
+           (Boolean(item.gstin) && Boolean(c.gstin) && c.gstin?.trim().toUpperCase() === item.gstin?.trim().toUpperCase())
+    );
+
+    const rememberedTerms: any = {};
+    if (item.paymentTerms) rememberedTerms.paymentTerms = item.paymentTerms;
+    if (item.deliveryTerms) rememberedTerms.deliveryTerms = item.deliveryTerms;
+
+    if (existingIdx >= 0) {
+      if (options.updateExisting) {
+        all[existingIdx] = {
+          ...all[existingIdx],
+          contactPerson: item.contactPerson || all[existingIdx].contactPerson,
+          address: item.address || all[existingIdx].address,
+          city: item.city || all[existingIdx].city,
+          state: item.state || all[existingIdx].state,
+          country: item.country || all[existingIdx].country || 'India',
+          mobile: item.mobile || all[existingIdx].mobile,
+          email: item.email || all[existingIdx].email,
+          gstin: item.gstin || all[existingIdx].gstin,
+          productsBought: item.productsBought || all[existingIdx].productsBought,
+          rememberedTerms: {
+            ...all[existingIdx].rememberedTerms,
+            ...rememberedTerms
+          },
+          updatedAt: now
+        };
+        updated++;
+      }
+    } else {
+      all.push({
+        id: `cust-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        companyName: cleanName,
+        contactPerson: item.contactPerson || '',
+        address: item.address || '',
+        city: item.city || '',
+        state: item.state || '',
+        country: item.country || 'India',
+        mobile: item.mobile || '',
+        email: item.email || '',
+        gstin: item.gstin || '',
+        productsBought: item.productsBought || '',
+        rememberedTerms,
+        createdAt: now,
+        updatedAt: now
+      });
+      added++;
+    }
+  }
+
+  saveCustomers(all);
+  return { added, updated, total: added + updated };
+};
+
+export const importInventoryBatch = (
+  items: Array<{
+    name: string;
+    sku?: string;
+    description?: string;
+    category?: string;
+    hsnSac?: string;
+    defaultUom?: string;
+    packSize?: string;
+    basePrice?: number;
+    defaultTaxRate?: number;
+    inStock?: number;
+  }>,
+  options: { updateExisting: boolean } = { updateExisting: true }
+): BatchImportResult => {
+  const all = getInventory();
+  let added = 0;
+  let updated = 0;
+
+  for (const item of items) {
+    if (!item.name || !item.name.trim()) continue;
+    const cleanName = item.name.trim();
+    const cleanSku = item.sku?.trim() || '';
+
+    const existingIdx = all.findIndex(
+      i => (Boolean(cleanSku) && i.sku?.trim().toLowerCase() === cleanSku.toLowerCase()) ||
+           i.name.trim().toLowerCase() === cleanName.toLowerCase()
+    );
+
+    if (existingIdx >= 0) {
+      if (options.updateExisting) {
+        all[existingIdx] = {
+          ...all[existingIdx],
+          sku: cleanSku || all[existingIdx].sku,
+          description: item.description !== undefined ? item.description : all[existingIdx].description,
+          category: item.category || all[existingIdx].category,
+          hsnSac: item.hsnSac || all[existingIdx].hsnSac,
+          defaultUom: item.defaultUom || all[existingIdx].defaultUom,
+          packSize: item.packSize || all[existingIdx].packSize,
+          basePrice: item.basePrice !== undefined ? item.basePrice : all[existingIdx].basePrice,
+          defaultTaxRate: item.defaultTaxRate !== undefined ? item.defaultTaxRate : all[existingIdx].defaultTaxRate,
+          inStock: item.inStock !== undefined ? item.inStock : all[existingIdx].inStock
+        };
+        updated++;
+      }
+    } else {
+      all.push({
+        id: `prod-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        sku: cleanSku || `MG-${Math.floor(100 + Math.random() * 900)}`,
+        name: cleanName,
+        description: item.description || '',
+        category: item.category || 'General Sourcing',
+        hsnSac: item.hsnSac || '6804',
+        defaultUom: item.defaultUom || 'PCS',
+        packSize: item.packSize || '1 PC',
+        basePrice: item.basePrice || 0,
+        defaultTaxRate: item.defaultTaxRate !== undefined ? item.defaultTaxRate : 18,
+        inStock: item.inStock || 0
+      });
+      added++;
+    }
+  }
+
+  saveInventory(all);
+  return { added, updated, total: added + updated };
+};
+
+export const getActiveDocumentId = (): string | null => {
+  try {
+    return localStorage.getItem('mg_supplytech_active_doc_id');
+  } catch (e) {
+    return null;
+  }
+};
+
+export const setActiveDocumentId = (docId: string): void => {
+  try {
+    localStorage.setItem('mg_supplytech_active_doc_id', docId);
+  } catch (e) {}
+};
+
+export const autoSaveCurrentDocument = (doc: DocumentRecord): DocumentRecord => {
+  const all = getDocuments();
+  const existingIdx = all.findIndex(d => d.id === doc.id);
+  const now = new Date().toISOString();
+
+  const updatedDoc: DocumentRecord = {
+    ...doc,
+    updatedAt: now
+  };
+
+  if (existingIdx >= 0) {
+    all[existingIdx] = updatedDoc;
+  } else {
+    all.unshift(updatedDoc);
+  }
+
+  saveDocuments(all);
+  setActiveDocumentId(doc.id);
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('mg_autosave_status', { 
+      detail: { status: 'saved', timestamp: now, docId: doc.id } 
+    }));
+  }
+
+  return updatedDoc;
+};
+

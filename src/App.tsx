@@ -6,10 +6,13 @@ import {
   InventoryItem 
 } from './types';
 import { 
+  getDocuments,
   createInitialDocument, 
   getSettings, 
   saveSettings, 
-  saveDocument 
+  saveDocument,
+  getActiveDocumentId,
+  autoSaveCurrentDocument
 } from './services/storageService';
 import { CANONICAL_SELLER } from './constants/brand';
 import { MGLogo } from './components/brand/BrandLogos';
@@ -48,6 +51,7 @@ import {
   ZoomOut, 
   RotateCcw,
   Check,
+  CheckCircle2,
   Menu,
   X,
   ExternalLink,
@@ -62,7 +66,45 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => authService.getCurrentSession()?.user || null);
   const [showGitHubModal, setShowGitHubModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'editor' | 'archive' | 'customers' | 'inventory' | 'reports' | 'settings'>('editor');
-  const [currentDoc, setCurrentDoc] = useState<DocumentRecord>(() => createInitialDocument('quotation'));
+  
+  // Initialize currentDoc from last active draft or most recent saved document
+  const [currentDoc, setCurrentDoc] = useState<DocumentRecord>(() => {
+    const all = getDocuments();
+    const activeId = getActiveDocumentId();
+    if (activeId) {
+      const found = all.find(d => d.id === activeId);
+      if (found) return found;
+    }
+    if (all.length > 0) return all[0];
+    const initial = createInitialDocument('quotation');
+    saveDocument(initial);
+    return initial;
+  });
+
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving'>('saved');
+  const [lastSavedTime, setLastSavedTime] = useState<string>('');
+
+  // Continuous auto-save with debounce so no document edits are ever lost
+  useEffect(() => {
+    setAutoSaveStatus('saving');
+    const timer = setTimeout(() => {
+      autoSaveCurrentDocument(currentDoc);
+      setAutoSaveStatus('saved');
+      setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [currentDoc]);
+
+  // Flush save on tab close or page refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      autoSaveCurrentDocument(currentDoc);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentDoc]);
+
   const [previewZoom, setPreviewZoom] = useState<number>(0.85);
   const [mobileViewMode, setMobileViewMode] = useState<'edit' | 'preview'>('edit');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -77,6 +119,19 @@ export default function App() {
     };
     window.addEventListener('mg_data_change', handleDataChange);
     return () => window.removeEventListener('mg_data_change', handleDataChange);
+  }, []);
+
+  // Active document for clean native printing
+  const [activePrintDoc, setActivePrintDoc] = useState<DocumentRecord | null>(null);
+
+  useEffect(() => {
+    const handlePreparePrint = (e: any) => {
+      if (e.detail?.doc) {
+        setActivePrintDoc(e.detail.doc);
+      }
+    };
+    window.addEventListener('mg_prepare_print_doc', handlePreparePrint);
+    return () => window.removeEventListener('mg_prepare_print_doc', handlePreparePrint);
   }, []);
 
   // Modals state
@@ -160,7 +215,9 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1614] text-slate-900 dark:text-[#E3ECE8] flex flex-col font-sans transition-colors duration-200">
+    <>
+      {/* Interactive Application Screen Shell (Strictly hidden when printing) */}
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1614] text-slate-900 dark:text-[#E3ECE8] flex flex-col font-sans transition-colors duration-200 print:hidden">
       {/* Top Application Bar - Clean light surface with brand accent banner */}
       <header className="app-header relative bg-white dark:bg-[#111C1A] text-slate-800 dark:text-[#E3ECE8] border-b border-slate-200 dark:border-[#223531] px-4 py-2.5 sticky top-0 z-40 shadow-xs">
         {/* Top 3px Brand Accent Stripe */}
@@ -261,14 +318,23 @@ export default function App() {
               <Database className="w-4 h-4" />
             </button>
 
-            {/* Push to GitHub */}
+            {/* Real-time Auto-Save Indicator */}
+            <div 
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold"
+              title={lastSavedTime ? `Last saved at ${lastSavedTime} to local offline database` : 'All documents automatically saved'}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>{autoSaveStatus === 'saving' ? 'Auto-saving...' : 'Auto-Saved ✓'}</span>
+            </div>
+
+            {/* Push Updates Directly Button */}
             <button
               onClick={() => setShowGitHubModal(true)}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs border border-slate-700 transition"
-              title="Push project to GitHub (mg-supplytech-document-maker)"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-slate-900 to-slate-800 hover:from-black hover:to-slate-900 text-white font-bold text-xs border border-slate-700 hover:border-[#DFBC64] transition shadow-xs"
+              title="Push Updates Directly to GitHub (Push-Updates-Directly.command)"
             >
               <FolderGit2 className="w-3.5 h-3.5 text-[#DFBC64]" />
-              <span className="hidden md:inline">Push to GitHub</span>
+              <span className="hidden sm:inline">Push Updates Directly</span>
             </button>
 
             {/* Company & Bank Settings */}
@@ -462,10 +528,14 @@ export default function App() {
         {activeTab === 'archive' && (
           <DocumentArchiveView
             onLoadDocIntoEditor={(doc) => {
+              autoSaveCurrentDocument(currentDoc);
+              setActiveDocumentId(doc.id);
               setCurrentDoc(doc);
               setActiveTab('editor');
             }}
             onOpenEmail={(doc) => {
+              autoSaveCurrentDocument(currentDoc);
+              setActiveDocumentId(doc.id);
               setCurrentDoc(doc);
               setShowEmailModal(true);
             }}
@@ -499,11 +569,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Persistent Hidden Print Container for Clean Native Printing */}
-      <div className="hidden print:block print-area">
-        <DocumentView document={currentDoc} printMode={true} settings={appSettings} />
-      </div>
-
       {/* Modals & Drawers */}
       <AIChatDrawer
         isOpen={showAiChat}
@@ -536,5 +601,15 @@ export default function App() {
       {/* Connectivity Banner */}
       <OfflineIndicator />
     </div>
+
+    {/* Dedicated Isolated Print Container: ONLY this element renders during print */}
+    <div id="mg-print-isolated-container" className="hidden print:block">
+      <DocumentView 
+        document={activePrintDoc || currentDoc} 
+        printMode={true} 
+        settings={appSettings} 
+      />
+    </div>
+  </>
   );
 }

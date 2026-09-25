@@ -70,8 +70,8 @@ export const DocumentView: React.FC<DocumentViewProps> = ({ document: doc, print
       id="mg-printable-document" 
       className="a4-document bg-white text-[#16211F] font-['Segoe_UI',Arial,sans-serif] mx-auto relative shadow-2xl print:shadow-none print:m-0 print:w-full print:bg-white text-[10pt] leading-[1.42] overflow-visible"
       style={{
-        width: printMode ? '100%' : '210mm',
-        minHeight: printMode ? 'auto' : '297mm',
+        width: printMode ? '210mm' : '210mm',
+        minHeight: '297mm',
         maxWidth: '100%',
         boxSizing: 'border-box'
       }}

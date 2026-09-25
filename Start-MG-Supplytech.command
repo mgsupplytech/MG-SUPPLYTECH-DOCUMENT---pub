@@ -25,10 +25,17 @@ fi
 
 echo "🍏 Detected Node $(node -v) on macOS ($(uname -m))"
 
+# Check if port 3000 is already running
+if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+    echo "⚡ MG Supplytech is already running on http://localhost:3000"
+    open "http://localhost:3000"
+    exit 0
+fi
+
 # Check if node_modules exists, if not install
 if [ ! -d "node_modules" ]; then
     echo "📦 Initializing local dependencies (first run only)..."
-    npm install
+    npm install --legacy-peer-deps || npm install --force
 fi
 
 echo "🚀 Starting MG Supplytech on http://localhost:3000 ..."

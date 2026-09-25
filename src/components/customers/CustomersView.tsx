@@ -15,8 +15,10 @@ import {
   FileText, 
   Tag, 
   BookmarkCheck,
-  ArrowRight
+  ArrowRight,
+  FileSpreadsheet
 } from 'lucide-react';
+import { SpreadsheetColumnMapperModal } from '../data/SpreadsheetColumnMapperModal';
 
 interface CustomersViewProps {
   onSelectCustomerForQuote: (customer: Customer) => void;
@@ -27,6 +29,7 @@ export const CustomersView: React.FC<CustomersViewProps> = ({ onSelectCustomerFo
   const [search, setSearch] = useState('');
   const [selectedCust, setSelectedCust] = useState<Customer | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<Partial<Customer>>({});
@@ -108,13 +111,24 @@ export const CustomersView: React.FC<CustomersViewProps> = ({ onSelectCustomerFo
           </p>
         </div>
 
-        <button
-          onClick={handleStartCreate}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#014136] text-[#DFBC64] font-bold text-xs hover:bg-[#002e27] shadow transition"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Customer</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1a2b28] hover:bg-slate-200 dark:hover:bg-[#233833] text-slate-800 dark:text-[#DFBC64] border border-slate-200 dark:border-[#2a3f3b] font-bold text-xs transition shadow-xs"
+            title="Upload CSV or Excel spreadsheet with interactive column mapping"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-[#014136] dark:text-[#DFBC64]" />
+            <span>Import CSV / Excel</span>
+          </button>
+
+          <button
+            onClick={handleStartCreate}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#014136] text-[#DFBC64] font-bold text-xs hover:bg-[#002e27] shadow transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Customer</span>
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -380,6 +394,16 @@ export const CustomersView: React.FC<CustomersViewProps> = ({ onSelectCustomerFo
           </div>
         </div>
       )}
+
+      {/* Spreadsheet CSV Column Mapping Modal */}
+      <SpreadsheetColumnMapperModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        mode="customers"
+        onImportComplete={() => {
+          refreshList();
+        }}
+      />
     </div>
   );
 };

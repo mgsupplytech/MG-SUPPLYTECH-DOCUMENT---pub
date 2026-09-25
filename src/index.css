@@ -27,24 +27,54 @@
 }
 
 @media print {
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+
   html, body {
     background: #FFFFFF !important;
     color: #16211F !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 210mm !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
-  /* Hide app navigation and editor controls in print */
-  .no-print, nav, aside, header.app-header, .editor-panel, .ai-drawer, .modal-backdrop {
+  /* Completely hide all screen interface */
+  .print\:hidden,
+  .no-print,
+  .app-header,
+  header,
+  nav,
+  aside,
+  main:not(.printable-main),
+  .editor-panel,
+  .ai-drawer,
+  .modal-backdrop,
+  [role="dialog"] {
     display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
   }
 
-  .print-area {
+  /* Isolate the document print container */
+  #mg-print-isolated-container {
+    display: block !important;
     width: 210mm !important;
     margin: 0 !important;
     padding: 0 !important;
-    display: block !important;
+    background: #FFFFFF !important;
+    visibility: visible !important;
+  }
+
+  #mg-print-isolated-container * {
+    visibility: visible !important;
   }
 
   .a4-document {
@@ -52,32 +82,52 @@
     min-height: 297mm !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: #FFFFFF !important;
+    color: #16211F !important;
     box-shadow: none !important;
     border: none !important;
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  /* Table rules for clean A4 multi-page pagination */
+  table {
+    page-break-inside: auto;
+    border-collapse: collapse !important;
   }
 
   thead {
     display: table-header-group !important;
   }
 
+  tfoot {
+    display: table-footer-group !important;
+  }
+
   tr {
-    break-inside: avoid !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .break-inside-avoid,
   .no-split {
-    break-inside: avoid !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  /* Fixed footer at physical bottom of every page */
+  /* Clean full-width footer pinned to physical bottom */
   footer.footer-bar {
-    position: fixed !important;
+    position: absolute !important;
+    bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    bottom: 0 !important;
-    height: 12mm !important;
+    height: 11mm !important;
+    background-color: #003A30 !important;
+    color: #FFFFFF !important;
+    border-top: 1.15mm solid #DFBC64 !important;
+    display: flex !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 

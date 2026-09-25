@@ -31,21 +31,31 @@ else
   echo "✅ Committed latest updates."
 fi
 
-echo ""
-echo "Please enter your GitHub repository URL:"
-echo "Example: https://github.com/your-username/mg-supplytech-document-maker.git"
-echo ""
-read -p "GitHub URL: " remote_url
+# Detect existing remote URL
+EXISTING_REMOTE=$(git remote get-url origin 2>/dev/null || echo "")
 
-if [ -z "$remote_url" ]; then
-  echo "❌ Repository URL cannot be empty."
-  echo "Press any key to exit..."
-  read -n 1
-  exit 1
+if [ -n "$EXISTING_REMOTE" ]; then
+  echo "📡 Using existing GitHub remote:"
+  echo "   $EXISTING_REMOTE"
+  remote_url="$EXISTING_REMOTE"
+else
+  echo ""
+  echo "Please enter your GitHub repository URL (first time only):"
+  echo "Example: https://github.com/shankeragencies/MG-SUPPLYTECH-DOCUMENT.git"
+  echo ""
+  read -p "GitHub URL: " remote_url
+
+  if [ -z "$remote_url" ]; then
+    echo "❌ Repository URL cannot be empty."
+    echo "Press any key to exit..."
+    read -n 1
+    exit 1
+  fi
+
+  git remote remove origin 2>/dev/null || true
+  git remote add origin "$remote_url"
 fi
 
-git remote remove origin 2>/dev/null || true
-git remote add origin "$remote_url"
 git branch -M main
 
 echo ""
