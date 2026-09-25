@@ -1,0 +1,6 @@
+{
+  "name": "MG Supplytech — Document Maker & Commercial Suite",
+  "description": "Professional browser-based document maker, print-ready PDF invoice generator, customer & inventory manager, offline storage with cloud-sync option, and AI commercial assistant for MG Supplytech.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

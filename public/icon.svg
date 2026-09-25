@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#002A22" />
+      <stop offset="50%" stop-color="#003A30" />
+      <stop offset="100%" stop-color="#014136" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE28A" />
+      <stop offset="40%" stop-color="#DFBC64" />
+      <stop offset="70%" stop-color="#B88C2E" />
+      <stop offset="100%" stop-color="#8C6415" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#DFBC64" />
+      <stop offset="100%" stop-color="#003A30" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Background with subtle border -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-opacity="0.35" />
+
+  <!-- Inner Diamond & Geometric Octagon Shield -->
+  <g filter="url(#shadow)">
+    <!-- Outer Shield Crest -->
+    <path d="M256 68 L390 144 V268 C390 352 332 418 256 448 C180 418 122 352 122 268 V144 Z" 
+          fill="#00241E" stroke="url(#goldGrad)" stroke-width="8" stroke-linejoin="round" />
+
+    <!-- Inner Shield Accent Line -->
+    <path d="M256 86 L372 152 V264 C372 338 322 398 256 426 C190 398 140 338 140 264 V152 Z" 
+          fill="none" stroke="#DFBC64" stroke-width="2" stroke-dasharray="8 6" opacity="0.6" />
+
+    <!-- Gold Laurel / Industrial Diamond Accent -->
+    <polygon points="256,110 274,136 256,162 238,136" fill="url(#goldGrad)" />
+
+    <!-- Monogram MG -->
+    <g fill="url(#goldGrad)" font-family="Cinzel, serif, Times New Roman" font-weight="900">
+      <text x="256" y="278" font-size="118" text-anchor="middle" letter-spacing="2">MG</text>
+    </g>
+
+    <!-- Subtitle Banner -->
+    <rect x="160" y="306" width="192" height="28" rx="6" fill="#003A30" stroke="url(#goldGrad)" stroke-width="2" />
+    <text x="256" y="325" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="800" fill="#DFBC64" text-anchor="middle" letter-spacing="4">SUPPLYTECH</text>
+
+    <!-- Bottom Emblem Star -->
+    <polygon points="256,354 262,370 278,370 265,380 270,396 256,386 242,396 247,380 234,370 250,370" fill="url(#goldGrad)" />
+  </g>
+</svg>
