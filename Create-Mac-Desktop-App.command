@@ -35,22 +35,45 @@ DIR_PLACEHOLDER
 
 cd "$APP_DIR"
 
+# Ensure all Mac Node/npm paths are available in background headless context
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$HOME/.nvm/versions/node/$(ls -1 $HOME/.nvm/versions/node 2>/dev/null | tail -n 1)/bin:$HOME/.fnm/current/bin:$HOME/.volta/bin:$PATH"
+
 # 1. Silently pull latest updates from GitHub if connected
 if [ -d ".git" ]; then
     git pull origin main --quiet 2>/dev/null || git pull --quiet 2>/dev/null || true
 fi
 
-# 2. Check if port 3000 is already active
-if ! lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1 ; then
-    # Start local node/vite server completely detached in background
-    nohup npm run dev > /dev/null 2>&1 &
-    sleep 2
+# 2. Check if port 3000 is occupied
+IS_ALIVE=0
+if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 1 http://localhost:3000 2>/dev/null || echo "000")
+    if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "304" ]; then
+        IS_ALIVE=1
+    else
+        # Stale or dead process on port 3000 - kill it
+        kill -9 $(lsof -ti :3000 2>/dev/null) 2>/dev/null || true
+        sleep 1
+    fi
 fi
 
-# 3. Open in default browser or PWA window
+# 3. If server is not alive, start it
+if [ "$IS_ALIVE" -eq 0 ]; then
+    nohup npm run dev > /tmp/mg-supplytech-server.log 2>&1 &
+    
+    # Wait for server to respond (up to 12 seconds)
+    for i in {1..24}; do
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 1 http://localhost:3000 2>/dev/null || echo "000")
+        if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "304" ]; then
+            break
+        fi
+        sleep 0.5
+    done
+fi
+
+# 4. Open in default browser or PWA window
 open "http://localhost:3000"
 
-# 4. Optional subtle macOS banner notification
+# 5. Subtle macOS banner notification
 osascript -e 'display notification "MG Supplytech is running on http://localhost:3000" with title "MG Supplytech" subtitle "Commercial Document Suite"' 2>/dev/null || true
 
 exit 0
@@ -122,8 +145,8 @@ echo "   1. Look on your Mac Desktop for the 'MG Supplytech' icon."
 echo "   2. Double-click it anytime to launch."
 echo "   3. It will automatically:"
 echo "      • Pull latest updates from GitHub in the background"
-echo "      • Start the local server if needed"
-echo "      • Open your Commercial Suite without opening the Terminal!"
+echo "      • Clear any stale port block and start the server"
+echo "      • Verify the server is running before opening your browser"
 echo ""
 echo "💡 PRO-TIP: You can drag 'MG Supplytech' from your Desktop into your Mac Dock"
 echo "            to keep it pinned just like Excel or Word!"
