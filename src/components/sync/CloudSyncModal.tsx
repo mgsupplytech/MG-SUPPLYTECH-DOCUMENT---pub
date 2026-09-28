@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Cloud, 
@@ -27,6 +27,16 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ isOpen, onClose 
   const [syncing, setSyncing] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const s = getSettings();
+      setSettingsState(s);
+      setConfig(s.firebaseConfig);
+      setTestResult(null);
+      setSyncResult(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

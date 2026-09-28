@@ -90,13 +90,20 @@ export const CustomersView: React.FC<CustomersViewProps> = ({ onSelectCustomerFo
     if (selectedCust?.id === id) setSelectedCust(null);
   };
 
-  const filteredCustomers = customers.filter(c => 
-    c.companyName.toLowerCase().includes(search.toLowerCase()) ||
-    c.city.toLowerCase().includes(search.toLowerCase()) ||
-    c.country.toLowerCase().includes(search.toLowerCase()) ||
-    (c.gstin && c.gstin.toLowerCase().includes(search.toLowerCase())) ||
-    (c.productsBought && c.productsBought.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredCustomers = customers.filter(c => {
+    const q = search.toLowerCase();
+    return (
+      (c.companyName || '').toLowerCase().includes(q) ||
+      (c.contactPerson || '').toLowerCase().includes(q) ||
+      (c.city || '').toLowerCase().includes(q) ||
+      (c.state || '').toLowerCase().includes(q) ||
+      (c.country || '').toLowerCase().includes(q) ||
+      (c.gstin || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q) ||
+      (c.mobile || '').toLowerCase().includes(q) ||
+      (c.productsBought || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6">

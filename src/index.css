@@ -45,36 +45,99 @@
   }
 
   /* Completely hide all screen interface */
+  #app-screen-shell,
   .print\:hidden,
   .no-print,
   .app-header,
-  header,
-  nav,
+  nav:not(#mg-print-isolated-container *),
   aside,
-  main:not(.printable-main),
   .editor-panel,
   .ai-drawer,
   .modal-backdrop,
   [role="dialog"] {
     display: none !important;
+    visibility: hidden !important;
     height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
   }
 
-  /* Isolate the document print container */
+  /* Isolate the document print container as the ONLY visible element */
   #mg-print-isolated-container {
     display: block !important;
+    visibility: visible !important;
     width: 210mm !important;
-    margin: 0 !important;
+    min-height: 297mm !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     background: #FFFFFF !important;
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  /* Support clean report printing when triggered from Reports tab */
+  body.printing-report #app-screen-shell {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 10mm !important;
+    overflow: visible !important;
+  }
+
+  body.printing-report #mg-print-isolated-container {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.printing-report .app-header,
+  body.printing-report nav,
+  body.printing-report button {
+    display: none !important;
+    height: 0 !important;
+  }
+
+  body.printing-report #printable-report {
+    display: block !important;
     visibility: visible !important;
   }
 
   #mg-print-isolated-container * {
     visibility: visible !important;
+  }
+
+  /* Explicitly guarantee Document Header, Body and Footer visibility */
+  #mg-print-isolated-container header,
+  #mg-print-isolated-container .printable-header {
+    display: grid !important;
+    visibility: visible !important;
+    background: #FFFFFF !important;
+  }
+
+  #mg-print-isolated-container main,
+  #mg-print-isolated-container .printable-main {
+    display: block !important;
+    visibility: visible !important;
+    background: #FFFFFF !important;
+  }
+
+  #mg-print-isolated-container footer,
+  #mg-print-isolated-container .footer-bar {
+    display: flex !important;
+    visibility: visible !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 11mm !important;
+    background-color: #003A30 !important;
+    color: #FFFFFF !important;
+    border-top: 1.15mm solid #DFBC64 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .a4-document {

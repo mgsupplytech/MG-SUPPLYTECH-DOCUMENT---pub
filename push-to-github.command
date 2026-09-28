@@ -70,7 +70,36 @@ if [ $? -eq 0 ]; then
   echo "=========================================================="
 else
   echo ""
-  echo "⚠️ Push failed. If this is a private repo, make sure you are logged into GitHub via Git Credential Manager or Personal Access Token (PAT)."
+  echo "⚠️ Push failed due to authentication or missing privileges."
+  echo "GitHub does not accept normal passwords for git push."
+  echo ""
+  echo "Would you like to authenticate using a GitHub Personal Access Token (PAT)?"
+  read -p "Paste your GitHub Token (starts with ghp_...) or press [Enter] to cancel: " user_token
+
+  if [ -n "$user_token" ]; then
+    CLEAN_HOST_PATH=$(echo "$remote_url" | sed -E 's|https://[^@]+@||' | sed -E 's|https://||' | sed -E 's|git@github.com:|github.com/|')
+    AUTH_REMOTE="https://${user_token}@${CLEAN_HOST_PATH}"
+    
+    echo "🔑 Applying token to git remote..."
+    git remote set-url origin "$AUTH_REMOTE"
+    
+    echo "🚀 Retrying push with token privileges..."
+    git push -u origin main
+    
+    if [ $? -eq 0 ]; then
+      echo ""
+      echo "=========================================================="
+      echo "🎉 SUCCESS: All updates pushed to GitHub with token!"
+      echo "=========================================================="
+    else
+      echo "❌ Still failed. Please verify that your token has 'repo' privileges."
+    fi
+  else
+    echo "To create a token:"
+    echo "1. Go to: https://github.com/settings/tokens/new"
+    echo "2. Check the 'repo' box"
+    echo "3. Generate token and re-run this script"
+  fi
 fi
 
 echo ""

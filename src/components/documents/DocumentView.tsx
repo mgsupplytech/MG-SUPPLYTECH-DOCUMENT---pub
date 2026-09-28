@@ -80,7 +80,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({ document: doc, print
       <div className="h-[3.2mm] bg-[#003A30] w-full" />
 
       {/* Branded Header */}
-      <header className="px-[11mm] pt-[5mm] pb-[4mm] grid grid-cols-[23mm_1fr_auto_18mm] gap-[4mm] items-center border-b border-[#D9DEDB] bg-white">
+      <header className="printable-header px-[11mm] pt-[5mm] pb-[4mm] grid grid-cols-[23mm_1fr_auto_18mm] gap-[4mm] items-center border-b border-[#D9DEDB] bg-white">
         <div className="flex items-center justify-start overflow-hidden">
           {company.logoUrl ? (
             <img 
@@ -141,7 +141,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({ document: doc, print
       </div>
 
       {/* Main Document Content Body with text-safe margins */}
-      <main className="px-[11mm] pt-0 pb-[20mm]">
+      <main className="printable-main px-[11mm] pt-0 pb-[20mm]">
         {/* Compact, refined Document Head strip - saves valuable vertical letterhead space */}
         {!isLetterhead && (
           <div className="flex justify-between items-end gap-[4mm] py-[2.2mm] border-b border-[#EDF0EE]">
@@ -412,7 +412,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({ document: doc, print
                     </tr>
                   </thead>
                   <tbody>
-                    {doc.items.map((item, idx) => (
+                    {(doc.items || []).map((item, idx) => (
                       <tr key={item.id || idx} className={`break-inside-avoid ${idx % 2 === 1 ? 'bg-[#FBFDFB]' : 'bg-white'}`}>
                         <td className="py-[2.5mm] px-[2mm] text-center text-[#65716D] border-b border-[#D9DEDB]">{idx + 1}</td>
                         <td className="py-[2.5mm] px-[2mm] font-bold text-[#014136] border-b border-[#D9DEDB]">
@@ -453,7 +453,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({ document: doc, print
                     </tr>
                   </thead>
                   <tbody>
-                    {doc.items.map((item, idx) => {
+                    {(doc.items || []).map((item, idx) => {
                       const qty = Number(item.qty || 0);
                       const rate = Number(item.unitPrice || 0);
                       const discount = (qty * rate * (Number(item.discountPercent || 0))) / 100;
@@ -517,7 +517,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({ document: doc, print
                     </tr>
                   </thead>
                   <tbody>
-                    {doc.items.map((item, idx) => {
+                    {(doc.items || []).map((item, idx) => {
                       const qty = Number(item.qty || 0);
                       const rate = Number(item.unitPrice || 0);
                       const discount = (qty * rate * (Number(item.discountPercent || 0))) / 100;
@@ -800,7 +800,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({ document: doc, print
       </main>
 
       {/* Sleek full-width footer pinned to physical bottom - Clean 4-item space-saving layout */}
-      <footer className="footer-bar h-[11mm] bg-[#003A30] text-white border-t-[1.15mm] border-[#DFBC64] px-[11mm] flex items-center justify-between text-[6.8pt] tracking-[0.01em] absolute bottom-0 left-0 right-0 z-10 print:fixed print:bottom-0">
+      <footer className="footer-bar h-[11mm] bg-[#003A30] text-white border-t-[1.15mm] border-[#DFBC64] px-[11mm] flex items-center justify-between text-[6.8pt] tracking-[0.01em] absolute bottom-0 left-0 right-0 z-10">
         <div className="truncate">
           <span className="text-[#DFBC64] font-bold uppercase tracking-wider mr-1.5">Location:</span>
           <span>{company.city ? `${company.city} – ${company.pincode || '110092'}, ${company.country || 'India'}` : company.address}</span>

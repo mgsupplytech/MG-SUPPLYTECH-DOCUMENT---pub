@@ -12,6 +12,7 @@ import {
   saveSettings, 
   saveDocument,
   getActiveDocumentId,
+  setActiveDocumentId,
   autoSaveCurrentDocument
 } from './services/storageService';
 import { CANONICAL_SELLER } from './constants/brand';
@@ -130,9 +131,22 @@ export default function App() {
         setActivePrintDoc(e.detail.doc);
       }
     };
+    const handleAfterPrint = () => {
+      setActivePrintDoc(null);
+    };
+
     window.addEventListener('mg_prepare_print_doc', handlePreparePrint);
-    return () => window.removeEventListener('mg_prepare_print_doc', handlePreparePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('mg_prepare_print_doc', handlePreparePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
   }, []);
+
+  // When changing documents or tabs in editor, ensure stale print document is cleared
+  useEffect(() => {
+    setActivePrintDoc(null);
+  }, [currentDoc.id, activeTab]);
 
   // Modals state
   const [showAiChat, setShowAiChat] = useState(false);
@@ -217,7 +231,7 @@ export default function App() {
   return (
     <>
       {/* Interactive Application Screen Shell (Strictly hidden when printing) */}
-      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1614] text-slate-900 dark:text-[#E3ECE8] flex flex-col font-sans transition-colors duration-200 print:hidden">
+      <div id="app-screen-shell" className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1614] text-slate-900 dark:text-[#E3ECE8] flex flex-col font-sans transition-colors duration-200 print:hidden">
       {/* Top Application Bar - Clean light surface with brand accent banner */}
       <header className="app-header relative bg-white dark:bg-[#111C1A] text-slate-800 dark:text-[#E3ECE8] border-b border-slate-200 dark:border-[#223531] px-4 py-2.5 sticky top-0 z-40 shadow-xs">
         {/* Top 3px Brand Accent Stripe */}

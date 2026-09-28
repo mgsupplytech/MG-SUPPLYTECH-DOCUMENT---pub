@@ -79,12 +79,17 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onAddItemToActiveD
     setItems(filtered);
   };
 
-  const filteredItems = items.filter(i => 
-    i.name.toLowerCase().includes(search.toLowerCase()) ||
-    i.sku.toLowerCase().includes(search.toLowerCase()) ||
-    i.category.toLowerCase().includes(search.toLowerCase()) ||
-    i.hsnSac.includes(search)
-  );
+  const filteredItems = items.filter(i => {
+    const q = search.toLowerCase();
+    return (
+      (i.name || '').toLowerCase().includes(q) ||
+      (i.sku || '').toLowerCase().includes(q) ||
+      (i.category || '').toLowerCase().includes(q) ||
+      (i.description || '').toLowerCase().includes(q) ||
+      (i.hsnSac || '').toLowerCase().includes(q) ||
+      (i.packSize || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6">

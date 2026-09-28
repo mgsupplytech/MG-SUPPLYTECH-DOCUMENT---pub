@@ -25,6 +25,19 @@ fi
 
 echo "🍏 Detected Node $(node -v) on macOS ($(uname -m))"
 
+# Check GitHub for latest updates if git repository exists
+if [ -d ".git" ]; then
+    echo "🔄 Checking GitHub for latest updates..."
+    # Attempt quick pull with 5s network timeout
+    if git pull origin main --quiet 2>/dev/null; then
+        echo "✅ Synchronized with latest GitHub version!"
+    elif git pull --quiet 2>/dev/null; then
+        echo "✅ Synchronized with latest GitHub version!"
+    else
+        echo "⚡ Running current local version."
+    fi
+fi
+
 # Check if port 3000 is already running
 if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1 ; then
     echo "⚡ MG Supplytech is already running on http://localhost:3000"

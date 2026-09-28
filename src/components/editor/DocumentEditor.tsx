@@ -127,7 +127,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   };
 
   const handleItemChange = (index: number, field: keyof DocumentItem, value: any) => {
-    const newItems = [...currentDoc.items];
+    const newItems = [...(currentDoc.items || [])];
     newItems[index] = { ...newItems[index], [field]: value };
 
     const totals = calculateDocumentTotals(newItems, currentDoc.isExport);
@@ -157,7 +157,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       notes: invItem.description
     };
 
-    const newItems = [...currentDoc.items, newItem];
+    const newItems = [...(currentDoc.items || []), newItem];
     const totals = calculateDocumentTotals(newItems, currentDoc.isExport);
     onChange({
       ...currentDoc,
@@ -182,13 +182,23 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       taxRate: currentDoc.isExport ? 0 : 18,
       packSize: 'Standard'
     };
-    const newItems = [...currentDoc.items, newItem];
-    onChange({ ...currentDoc, items: newItems });
+    const newItems = [...(currentDoc.items || []), newItem];
+    const totals = calculateDocumentTotals(newItems, currentDoc.isExport);
+    onChange({
+      ...currentDoc,
+      items: newItems,
+      subtotal: totals.subtotal,
+      discountTotal: totals.discountTotal,
+      taxTotal: totals.taxTotal,
+      grandTotal: totals.grandTotal,
+      amountInWords: numberToWords(totals.grandTotal, currentDoc.currency)
+    });
   };
 
   const removeItem = (index: number) => {
-    if (currentDoc.items.length <= 1) return;
-    const newItems = currentDoc.items.filter((_, i) => i !== index);
+    const currentItems = currentDoc.items || [];
+    if (currentItems.length <= 1) return;
+    const newItems = currentItems.filter((_, i) => i !== index);
     const totals = calculateDocumentTotals(newItems, currentDoc.isExport);
     onChange({
       ...currentDoc,

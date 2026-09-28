@@ -3,6 +3,7 @@ import { X, Mail, Copy, Check, ExternalLink, Send, Sparkles, MessageSquare } fro
 import { DocumentRecord } from '../../types';
 import { CANONICAL_SELLER } from '../../constants/brand';
 import { draftEmailWithAi } from '../../services/aiService';
+import { getSettings, getEffectiveCompanyProfile } from '../../services/storageService';
 
 interface EmailModalProps {
   isOpen: boolean;
@@ -15,15 +16,18 @@ export const EmailModal: React.FC<EmailModalProps> = ({
   onClose,
   document: doc
 }) => {
+  const company = getEffectiveCompanyProfile(getSettings());
   const [to, setTo] = useState(doc.customerEmail || '');
-  const [cc, setCc] = useState(CANONICAL_SELLER.email);
+  const [cc, setCc] = useState(company.email || CANONICAL_SELLER.email);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [copied, setCopied] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
 
   useEffect(() => {
+    const comp = getEffectiveCompanyProfile(getSettings());
     setTo(doc.customerEmail || '');
+    setCc(comp.email || CANONICAL_SELLER.email);
     const isPriceOffer = doc.docType === 'price-offer';
     const typeLabel = isPriceOffer 
       ? 'Price Offer' 
@@ -31,26 +35,26 @@ export const EmailModal: React.FC<EmailModalProps> = ({
         ? 'Proforma Invoice' 
         : 'Quotation';
 
-    const defaultSubject = `[MG Supplytech] ${typeLabel} ${doc.docNumber} — ${doc.customerName}`;
-    const defaultBody = `Dear ${doc.customerName},\n\n` +
-      `Greetings from MG Supplytech, Delhi.\n\n` +
+    const defaultSubject = `[${comp.companyName || 'MG Supplytech'}] ${typeLabel} ${doc.docNumber} — ${doc.customerName || 'Customer'}`;
+    const defaultBody = `Dear ${doc.customerName || 'Customer'},\n\n` +
+      `Greetings from ${comp.companyName || 'MG Supplytech'}, ${comp.city || 'Delhi'}.\n\n` +
       `We thank you for your valued enquiry. Please find our official ${typeLabel.toLowerCase()} #${doc.docNumber} for your kind review.\n\n` +
       `SUMMARY OF COMMERCIAL TERMS:\n` +
       `• Document Reference: ${doc.docNumber}\n` +
       `• Date: ${doc.date}\n` +
-      (isPriceOffer ? `• Price Basis: ${doc.priceBasis || 'Ex-Works Delhi'}\n` : `• Total Amount: ${doc.currency} ${doc.grandTotal.toLocaleString()}\n`) +
-      `• Payment Terms: ${doc.paymentTerms}\n` +
-      `• Delivery / Lead Time: ${doc.deliveryTerms}\n` +
-      `• Freight & Insurance: ${doc.freightInsurance}\n\n` +
+      (isPriceOffer ? `• Price Basis: ${doc.priceBasis || 'Ex-Works Delhi'}\n` : `• Total Amount: ${doc.currency} ${(doc.grandTotal || 0).toLocaleString()}\n`) +
+      `• Payment Terms: ${doc.paymentTerms || 'As agreed'}\n` +
+      `• Delivery / Lead Time: ${doc.deliveryTerms || '3-5 business days'}\n` +
+      `• Freight & Insurance: ${doc.freightInsurance || "To Buyer's Account"}\n\n` +
       `Please find the complete commercial document generated in the attachment.\n` +
       `Our technical sourcing team remains at your disposal should you require further samples or specifications.\n\n` +
       `Warm regards,\n\n` +
       `Commercial Sourcing Team\n` +
-      `MG SUPPLYTECH\n` +
-      `177 First Floor, Vigyan Vihar, Delhi – 110092, India\n` +
-      `Phone/WhatsApp: ${CANONICAL_SELLER.phone}\n` +
-      `Email: ${CANONICAL_SELLER.email}\n` +
-      `Web: ${CANONICAL_SELLER.website}`;
+      `${comp.companyName || 'MG SUPPLYTECH'}\n` +
+      `${comp.address || '177 First Floor, Vigyan Vihar, Delhi – 110092, India'}\n` +
+      `Phone/WhatsApp: ${comp.phone || CANONICAL_SELLER.phone}\n` +
+      `Email: ${comp.email || CANONICAL_SELLER.email}\n` +
+      `Web: ${comp.website || CANONICAL_SELLER.website}`;
 
     setSubject(defaultSubject);
     setBody(defaultBody);

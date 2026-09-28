@@ -193,10 +193,13 @@ export const printDocumentWithStandardName = (doc: DocumentRecord): string => {
     window.addEventListener('afterprint', cleanup, { once: true });
     setTimeout(cleanup, 45000);
 
-    // Brief timeout to ensure React renders the document into the isolated print container
-    setTimeout(() => {
-      window.print();
-    }, 50);
+    // Give React render and browser layout enough frames to paint the isolated container
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.focus();
+        window.print();
+      }, 150);
+    });
   } catch (err) {
     console.error('Error triggering standardized print:', err);
     document.title = originalTitle;

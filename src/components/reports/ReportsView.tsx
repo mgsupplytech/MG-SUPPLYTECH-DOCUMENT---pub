@@ -48,11 +48,21 @@ export const ReportsView: React.FC = () => {
   const topCustomers = Object.values(customerMap).sort((a, b) => b.value - a.value).slice(0, 5);
 
   // Export vs Domestic count
-  const exportDocs = documents.filter(d => d.isExport || (d.customerCountry && d.customerCountry.toLowerCase() !== 'india'));
-  const domesticDocs = documents.filter(d => !d.isExport && (!d.customerCountry || d.customerCountry.toLowerCase() === 'india'));
+  const exportDocs = documents.filter(d => d.isExport || ((d.customerCountry || '').trim().toLowerCase() !== 'india' && (d.customerCountry || '').trim().length > 0));
+  const domesticDocs = documents.filter(d => !d.isExport && (!(d.customerCountry || '').trim() || (d.customerCountry || '').trim().toLowerCase() === 'india'));
 
   const handlePrintReport = () => {
-    window.print();
+    document.body.classList.add('printing-report');
+    const cleanup = () => {
+      document.body.classList.remove('printing-report');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup, { once: true });
+    setTimeout(cleanup, 45000);
+    setTimeout(() => {
+      window.focus();
+      window.print();
+    }, 100);
   };
 
   const handleExportCsv = () => {

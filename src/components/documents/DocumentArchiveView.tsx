@@ -106,11 +106,13 @@ export const DocumentArchiveView: React.FC<DocumentArchiveViewProps> = ({
   };
 
   const filteredDocs = documents.filter(d => {
+    const q = search.toLowerCase();
     const matchSearch = 
-      d.docNumber.toLowerCase().includes(search.toLowerCase()) ||
-      d.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      d.customerCountry.toLowerCase().includes(search.toLowerCase()) ||
-      (d.reference && d.reference.toLowerCase().includes(search.toLowerCase()));
+      (d.docNumber || '').toLowerCase().includes(q) ||
+      (d.customerName || '').toLowerCase().includes(q) ||
+      (d.customerCountry || '').toLowerCase().includes(q) ||
+      (d.reference || '').toLowerCase().includes(q) ||
+      (d.buyerOrderNo || '').toLowerCase().includes(q);
 
     const matchStatus = statusFilter === 'all' || d.status === statusFilter;
     const matchType = typeFilter === 'all' || d.docType === typeFilter;

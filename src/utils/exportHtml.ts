@@ -1,4 +1,8 @@
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { DocumentRecord } from '../types';
+import { DocumentView } from '../components/documents/DocumentView';
+import { getSettings } from '../services/storageService';
 import { 
   getStandardizedDocumentBaseName, 
   getStandardizedDocumentFileName, 
@@ -6,8 +10,20 @@ import {
 } from './documentNaming';
 
 export const generateStandaloneHtml = (doc: DocumentRecord): string => {
-  const printableElement = document.getElementById('mg-printable-document');
-  const innerHtml = printableElement ? printableElement.outerHTML : '';
+  let innerHtml = '';
+  try {
+    innerHtml = renderToStaticMarkup(
+      React.createElement(DocumentView, { 
+        document: doc, 
+        printMode: true, 
+        settings: getSettings() 
+      })
+    );
+  } catch (err) {
+    const printableElement = document.getElementById('mg-printable-document');
+    innerHtml = printableElement ? printableElement.outerHTML : '';
+  }
+
   const baseName = getStandardizedDocumentBaseName(doc);
   const pdfFileName = getStandardizedPdfName(doc);
   const htmlFileName = getStandardizedDocumentFileName(doc, 'html');
@@ -111,7 +127,7 @@ export const generateStandaloneHtml = (doc: DocumentRecord): string => {
         page-break-inside: avoid !important;
       }
       .footer-bar {
-        position: fixed !important;
+        position: absolute !important;
         left: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
